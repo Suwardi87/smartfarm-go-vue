@@ -1,5 +1,5 @@
 <template>
-  <MarketplaceLayout>
+  <AdminLayout>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div class="mb-8 flex items-center justify-between">
         <div>
@@ -193,18 +193,18 @@
         </div>
       </div>
     </div>
-  </MarketplaceLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import MarketplaceLayout from '@/components/layout/MarketplaceLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { getMyAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/services/addressService'
 import type { Address, CreateAddressRequest } from '@/dto/address/Address'
 import { useToast } from '@/composables/useToast'
 import { normalizeAddress } from '@/utils/transformers'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const router = useRouter()
 const { showSuccess, showError } = useToast()

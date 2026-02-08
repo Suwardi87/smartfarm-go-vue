@@ -5,12 +5,12 @@ import (
 
 	"smartfarm-api/dto"
 	"smartfarm-api/services"
+	"smartfarm-api/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Register(c *gin.Context) {
-
 	var req dto.RegisterRequest
 
 	// bind JSON ke DTO (mapping + validasi)
@@ -21,7 +21,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	err := services.RegisterUser(req)
+	user, err := services.RegisterUser(req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -29,8 +29,29 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Generate JWT for Auto-Login
+	token, err := utils.GenerateToken(user.ID, user.Role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to generate token",
+		})
+		return
+	}
+
+	// Set Cookie
+	c.SetCookie(
+		"access_token",
+		token,
+		3600*24,
+		"/",
+		"",
+		false,
+		true,
+	)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "registrasi berhasil",
+		"data":    user,
 	})
 }
 

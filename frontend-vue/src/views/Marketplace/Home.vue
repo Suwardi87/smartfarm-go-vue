@@ -44,7 +44,7 @@
     <section class="mb-12" v-if="freshProducts.length > 0">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Panen Minggu Ini (Ready)</h2>
-        <a href="#" class="text-brand-600 font-medium hover:underline">Lihat Semua →</a>
+        <router-link to="/marketplace?type=fresh" class="text-brand-600 font-medium hover:underline">Lihat Semua →</router-link>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductCard v-for="product in freshProducts" :key="product.id" :product="product" label="FRESH" @add-to-cart="handleAddToCart" />
@@ -55,7 +55,7 @@
     <section class="mb-12" v-if="preOrderProducts.length > 0">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Open Pre-Order</h2>
-        <a href="#" class="text-brand-600 font-medium hover:underline">Lihat Semua →</a>
+        <router-link to="/marketplace?type=preorder" class="text-brand-600 font-medium hover:underline">Lihat Semua →</router-link>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductCard v-for="product in preOrderProducts" :key="product.id" :product="product" label="PRE-ORDER" labelColor="bg-blue-500" @add-to-cart="handleAddToCart" />
@@ -66,7 +66,7 @@
     <section class="mb-12" v-if="subscriptionProducts.length > 0">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Paket Langganan</h2>
-        <a href="#" class="text-brand-600 font-medium hover:underline">Lihat Semua →</a>
+        <router-link to="/marketplace?type=subscription" class="text-brand-600 font-medium hover:underline">Lihat Semua →</router-link>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductCard v-for="product in subscriptionProducts" :key="product.id" :product="product" label="SUBSCRIPTION" labelColor="bg-purple-500" @add-to-cart="handleAddToCart" />
@@ -95,8 +95,9 @@ const { showSuccess } = useToast()
 onMounted(async () => {
   try {
     isLoading.value = true
-    const response = await getProducts()
-    const rawData = response.data.data as any[] ?? []
+    const response = await getProducts(1, 12) // Limit 8 for Home
+    const paginatedData = response.data
+    const rawData = paginatedData.data as any[] ?? []
     products.value = rawData.map(normalizeProduct)
   } catch (error) {
     console.error("Failed to fetch products", error)

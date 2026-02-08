@@ -10,6 +10,7 @@ import (
 type AnalyticsService interface {
 	LogView(productID uint, userID uint) error
 	GetTrendingProducts() ([]dto.ProductResponse, error)
+	GetFarmerDashboardData(farmerID uint) (dto.FarmerDashboardResponse, error)
 }
 
 type analyticsService struct {
@@ -36,10 +37,6 @@ func (s *analyticsService) GetTrendingProducts() ([]dto.ProductResponse, error) 
 	}
 
 	var responses []dto.ProductResponse
-	// We need to verify if product service map function is reusable or duplicate it
-	// For simplicity, I'll duplicate the mapping logic or make it shared.
-	// I'll duplicate for now to avoid complexity of shared package dependency cycle (though utils is fine).
-
 	for _, p := range products {
 		var harvestDateStr string
 		if p.HarvestDate != nil {
@@ -64,4 +61,48 @@ func (s *analyticsService) GetTrendingProducts() ([]dto.ProductResponse, error) 
 	}
 
 	return responses, nil
+}
+
+func (s *analyticsService) GetFarmerDashboardData(farmerID uint) (dto.FarmerDashboardResponse, error) {
+	rev, orders, customers, products, err := s.repo.GetFarmerStats(farmerID)
+	if err != nil {
+		return dto.FarmerDashboardResponse{}, err
+	}
+
+	recentOrders, err := s.repo.GetFarmerRecentOrders(farmerID, 5)
+	if err != nil {
+		return dto.FarmerDashboardResponse{}, err
+	}
+
+	var recentOrdersResponse []dto.FarmerRecentOrder
+	for _, o := range recentOrders {
+		// Find the product that belongs to this farmer in the order
+		for _, item := range o.OrderItems {
+			if item.Product.FarmerID == farmerID {
+				recentOrdersResponse = append(recentOrdersResponse, dto.FarmerRecentOrder{
+					ID:          o.ID,
+					ProductName: item.Product.Name,
+					Category:    item.Product.Category,
+					Price:       item.Price,
+					Status:      o.Status,
+					ImageURL:    item.Product.ImageURL,
+				})
+				break // Only show one product per order for simplicity in "Recent Orders"
+			}
+		}
+	}
+
+	return dto.FarmerDashboardResponse{
+		Stats: dto.FarmerStatsResponse{
+			TotalRevenue:    rev,
+			RevenueGrowth:   12.5, // Dummy for UI
+			TotalOrders:     orders,
+			OrdersGrowth:    -5.2, // Dummy for UI
+			TotalCustomers:  customers,
+			CustomersGrowth: 8.1, // Dummy for UI
+			TotalProducts:   products,
+			ProductsGrowth:  2.0, // Dummy for UI
+		},
+		RecentOrders: recentOrdersResponse,
+	}, nil
 }

@@ -9,18 +9,20 @@
 
         <!-- IMAGE -->
         <div class="space-y-4">
-          <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden relative">
+          <div class="aspect-square bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden relative">
             <img
-              v-if="product.image_url"
+              v-if="product.image_url && !imageError"
               :src="getImageUrl(product.image_url)"
               :alt="product.name"
               class="w-full h-full object-cover"
+              @error="handleImageError"
+              loading="eager"
             />
             <div
               v-else
-              class="absolute inset-0 flex items-center justify-center text-gray-400 text-6xl"
+              class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-800"
             >
-              🥦
+              <span class="text-8xl">🥬</span>
             </div>
 
             <!-- BADGES -->
@@ -170,6 +172,12 @@ const cart = useCart()
 const { showSuccess } = useToast()
 const product = ref<Product | null>(null)
 const quantity = ref(1)
+const imageError = ref(false)
+
+const handleImageError = () => {
+  console.warn('Failed to load product image:', product.value?.image_url)
+  imageError.value = true
+}
 
 /* fetch by id */
 onMounted(async () => {

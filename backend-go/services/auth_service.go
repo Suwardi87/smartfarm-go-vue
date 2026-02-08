@@ -11,12 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterUser(req dto.RegisterRequest) error {
+func RegisterUser(req dto.RegisterRequest) (*models.User, error) {
 
 	// cek email sudah ada
 	existingUser, _ := repositories.FindUserByEmail(req.Email)
 	if existingUser.ID != 0 {
-		return errors.New("email sudah terdaftar")
+		return nil, errors.New("email sudah terdaftar")
 	}
 
 	// hash password (pengamanan password)
@@ -25,7 +25,7 @@ func RegisterUser(req dto.RegisterRequest) error {
 		bcrypt.DefaultCost,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	user := models.User{
@@ -35,7 +35,12 @@ func RegisterUser(req dto.RegisterRequest) error {
 		Role:     req.Role,
 	}
 
-	return repositories.CreateUser(&user)
+	err = repositories.CreateUser(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func LoginUser(req dto.LoginRequest) (string, error) {

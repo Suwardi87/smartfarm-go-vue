@@ -9,18 +9,19 @@
         </router-link>
 
         <!-- Search (Hidden on mobile for now or simple icon) -->
-        <div class="hidden md:flex flex-1 mx-8 max-w-lg">
+        <form @submit.prevent="handleSearch" class="hidden md:flex flex-1 mx-8 max-w-lg">
           <div class="relative w-full">
             <input
+              v-model="searchQuery"
               type="text"
               placeholder="Cari sayuran segar..."
               class="w-full pl-4 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-brand-500"
             />
-            <button class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">
+            <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500">
               🔍
             </button>
           </div>
-        </div>
+        </form>
 
         <!-- Right Actions -->
         <div class="flex items-center gap-4">
@@ -71,7 +72,7 @@
 <script setup lang="ts">
 import { useCart } from '@/stores/cart'
 import { useUser } from '@/stores/user'
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const { totalItems } = useCart()
@@ -79,9 +80,25 @@ const userStore = useUser()
 const user = computed(() => userStore.state.user)
 const router = useRouter()
 
-onMounted(() => {
+const searchQuery = ref('')
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({
+      path: '/marketplace',
+      query: { q: searchQuery.value.trim() }
+    })
+  }
+}
+
+onMounted(async () => {
   if (!userStore.state.isAuthenticated) {
-    userStore.fetchUser()
+    try {
+      await userStore.fetchUser()
+    } catch (error) {
+      // Silently fail if user is not authenticated
+      // This is expected for public pages
+    }
   }
 })
 

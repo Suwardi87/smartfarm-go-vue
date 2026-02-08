@@ -96,4 +96,36 @@ Dokumen ini berisi langkah-langkah teknis yang sangat mendetail tentang apa yang
 - **Baca Terminal**: Selalu perhatikan log di terminal Go. Saya sudah menambahkan banyak pesan `log.Printf` untuk membantu kamu melihat pergerakan data.
 - **Console Log**: Gunakan `console.log()` di frontend untuk melihat data apa yang datang dari backend.
 
+### Tahap 13: Fitur Pencarian (Search) & Navigasi 'Lihat Semua'
+*   **Backend - Query Dinamis**: 
+    - Memperbarui `ProductRepository` agar fungsi `FindAll` mendukung parameter string pencarian menggunakan GORM `LIKE`.
+    - Menyesuaikan `ProductService` dan `ProductController` untuk menangkap query parameter `?q=`.
+*   **Frontend - Katalog & Search Bar**:
+    - Membuat halaman `Marketplace.vue` sebagai pusat katalog produk lengkap dengan sistem filter kategori.
+    - Menghubungkan input pencarian di `MarketplaceLayout.vue` menggunakan `v-model` dan navigasi rute otomatis ke `/marketplace?q=...`.
+    - Mengintegrasikan watcher di `Marketplace.vue` untuk memantau perubahan query parameter (search/filter) dan memperbarui daftar produk secara real-time.
+    - Mengaktifkan link "Lihat Semua" di Beranda dan tombol "See all" pada dashboard petani.
+
+### Tahap 14: Integrasi Registrasi Pengguna & Auto-Login
+*   **Backend - Alur Pendaftaran**: 
+    - Memperbarui `auth_service.go` (`RegisterUser`) agar mengembalikan objek user.
+    - Menambahkan logika di `auth_controller.go` (`Register`) untuk menghasilkan JWT token dan mengatur cookie `access_token` secara otomatis setelah registrasi sukses.
+    - Menyelaraskan rute di `routes.go` menjadi `/signup` (dari sebelumnya `/register`) agar konsisten dengan frontend.
+*   **Frontend - Form Signup**:
+    - Memperbarui `Signup.vue` agar mendukung pemilihan peran (**Petani** atau **Pembeli**).
+    - Menambahkan logika pengalihan rute otomatis (Auto-Redirect) setelah pendaftaran berhasil: Petani diarahkan ke Dashboard, Pembeli diarahkan ke Beranda/Marketplace.
+    - Menambahkan tampilan pesan error (seperti "email sudah terdaftar") untuk memberikan feedback yang akurat dari backend.
+
 Selesai! Dengan mengikuti log ini, kamu baru saja mempelajari bagaimana sebuah aplikasi Fullstack kompleks dibangun dari sisi dasar hingga integrasi tingkat lanjut. 🚀🚜
+### Tahap 12: Integrasi Template Dashboard TailAdmin (Farmer)
+*   **Backend - Persiapan Data**: 
+    - Membuat `dto/analytics.go` untuk struktur data statistik (Revenue, Orders, Customers, Products).
+    - Memperbarui `AnalyticsRepository` dengan query GORM untuk mengambil statistik riil berdasarkan `FarmerID`.
+    - Menambahkan `GetFarmerDashboardData` di `AnalyticsService` untuk memproses data mentah menjadi format DTO.
+    - Menambahkan `GetFarmerDashboard` di `AnalyticsController` dengan proteksi middleware (khusus role farmer).
+    - Mendaftarkan rute `GET /api/analytics/farmer` di `routes.go`.
+*   **Frontend - Implementasi UI**:
+    - Memperbarui `analyticsService.ts` untuk mendukung fungsi `getFarmerDashboardData`.
+    - Memodifikasi komponen TailAdmin (`EcommerceMetrics.vue`, `RecentOrders.vue`) agar menerima data via props (dinamis) alih-alih data statis.
+    - Merombak total `FarmerDashboard.vue` menggunakan `AdminLayout` dan mengintegrasikan kartu metrik, grafik statistik, serta tabel pesanan terbaru.
+    - Menampilkan data "Smart Prediction" (produk trending) di sidebar dashboard sebagai panduan tanam bagi petani.

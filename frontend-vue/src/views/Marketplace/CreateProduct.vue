@@ -1,5 +1,5 @@
 <template>
-  <MarketplaceLayout>
+   <AdminLayout>
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Tambah Produk Baru</h1>
 
@@ -75,7 +75,7 @@
         </form>
       </div>
     </div>
-  </MarketplaceLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
@@ -83,6 +83,7 @@ import MarketplaceLayout from '@/components/layout/MarketplaceLayout.vue'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { createProduct } from '@/services/productService'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const router = useRouter()
 const loading = ref(false)

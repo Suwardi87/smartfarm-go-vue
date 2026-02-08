@@ -3,14 +3,16 @@
     <router-link :to="`/products/${product.id}`" class="block aspect-square bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
        <!-- Image -->
        <img
-        v-if="product.image_url"
+        v-if="product.image_url && !imageError"
          :src="getImageUrl(product.image_url)"
         :alt="product.name"
         class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+        @error="handleImageError"
+        loading="lazy"
        />
 
-       <div v-else class="absolute inset-0 flex items-center justify-center text-gray-400">
-         <span class="text-4xl">🥦</span>
+       <div v-else class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-700 dark:to-gray-800">
+         <span class="text-6xl">🥬</span>
        </div>
        <!-- Label -->
        <span
@@ -55,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { getImageUrl } from '@/utils/image'
 import type { Product } from '@/dto/product/Product'
 
@@ -69,6 +72,13 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineEmits(['addToCart'])
+
+const imageError = ref(false)
+
+const handleImageError = () => {
+  console.warn('Failed to load image:', props.product.image_url)
+  imageError.value = true
+}
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat('id-ID', {

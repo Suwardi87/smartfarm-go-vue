@@ -44,3 +44,11 @@ type ProductResponse struct {
 	SubscriptionPeriod string  `json:"subscription_period,omitempty"`
 	Views              int     `json:"views,omitempty"`
 }
+
+type PaginatedProductResponse struct {
+	Data       []ProductResponse `json:"data"`
+	Total      int64             `json:"total"`
+	Page       int               `json:"page"`
+	Limit      int               `json:"limit"`
+	TotalPages int               `json:"total_pages"`
+}

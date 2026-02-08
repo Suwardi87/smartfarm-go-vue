@@ -12,12 +12,12 @@ type Product struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Name        string  `gorm:"type:varchar(255);not null" json:"name"`
+	Name        string  `gorm:"type:varchar(255);not null;index" json:"name"`
 	Description string  `gorm:"type:text" json:"description"`
-	Price       float64 `gorm:"type:decimal(10,2);not null" json:"price"`
+	Price       float64 `gorm:"type:decimal(10,2);not null;index" json:"price"`
 	Stock       int     `gorm:"not null" json:"stock"`
 	ImageURL    string  `gorm:"type:varchar(255)" json:"image_url"`
-	Category    string  `gorm:"type:varchar(100)" json:"category"`
+	Category    string  `gorm:"type:varchar(100);index" json:"category"`
 
 	// Relation to Farmer (User)
 	FarmerID uint `json:"farmer_id"`

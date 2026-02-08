@@ -1,5 +1,5 @@
 <template>
-  <MarketplaceLayout>
+  <AdminLayout>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Daftar Produk Saya</h1>
@@ -21,9 +21,10 @@
         </router-link>
       </div>
 
-      <div v-else class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+      <div v-else class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
             <thead class="bg-gray-50 dark:bg-gray-700/50">
               <tr>
                 <th class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">Produk</th>
@@ -79,29 +80,68 @@
           </table>
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between bg-white dark:bg-gray-800 px-6 py-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div class="text-sm text-gray-500">
+            Menampilkan <span class="font-medium">{{ products.length }}</span> dari <span class="font-medium">{{ totalCount }}</span> produk
+          </div>
+          <div class="flex gap-2">
+            <button
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              Sebelumnya
+            </button>
+            <button
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              Selanjutnya
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  </MarketplaceLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
-import MarketplaceLayout from '@/components/layout/MarketplaceLayout.vue'
 import { ref, onMounted } from 'vue'
 import { getFarmerProducts, deleteProduct } from '@/services/productService'
 import type { Product } from '@/dto/product/Product'
 import { formatRupiah } from '@/utils/formatter'
 import { getImageUrl } from '@/utils/image'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const products = ref<Product[]>([])
 const loading = ref(true)
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalCount = ref(0)
+const limit = 10
 
-const fetchProducts = async () => {
+const fetchProducts = async (page = 1) => {
   try {
-    const response = await getFarmerProducts()
-    products.value = response.data.data ?? []
+    loading.value = true
+    const response = await getFarmerProducts(page, limit)
+    const result = response.data
+    products.value = result.data ?? []
+    currentPage.value = result.page
+    totalPages.value = result.total_pages
+    totalCount.value = result.total
   } catch (error) {
     console.error('Failed to fetch farmer products', error)
   } finally {
     loading.value = false
+  }
+}
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    fetchProducts(page)
   }
 }
 
@@ -111,12 +151,12 @@ const handleDelete = async (id: number) => {
     try {
         await deleteProduct(id)
         alert('Produk berhasil dihapus')
-        fetchProducts() // Refresh list
+        fetchProducts(currentPage.value) // Refresh current page
     } catch (error: any) {
         console.error('Failed to delete product', error)
         alert('Gagal menghapus produk: ' + (error.response?.data?.error || error.message))
     }
 }
 
-onMounted(fetchProducts)
+onMounted(() => fetchProducts(1))
 </script>

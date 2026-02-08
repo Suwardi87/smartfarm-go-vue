@@ -15,6 +15,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/marketplace',
+      name: 'AllProducts',
+      component: () => import('../views/Marketplace/Marketplace.vue'),
+      meta: {
+        title: 'Katalog Produk',
+      },
+    },
+    {
       path: '/farmer/dashboard',
       name: 'FarmerDashboard',
       component: () => import('../views/Marketplace/FarmerDashboard.vue'),

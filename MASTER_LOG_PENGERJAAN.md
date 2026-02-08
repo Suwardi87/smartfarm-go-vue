@@ -88,6 +88,35 @@ Dokumen ini mencatat seluruh perjalanan pengembangan aplikasi SmartFarm dari tit
 
 ---
 
+## 🎨 FASE 8: Integrasi Template TailAdmin (Farmer Premium Dashboard)
+*Meningkatkan estetika dan fungsionalitas dashboard petani menjadi standar profesional.*
+
+1.  **Dashboard Refactoring**:
+    - Merombak total `FarmerDashboard.vue` menggunakan layout `AdminLayout` dan komponen TailAdmin.
+    - Menghubungkan metrik riil: Total Pendapatan (Revenue), Total Pesanan (Orders), Jumlah Pelanggan Unik, dan Total Produk.
+2.  **Smart Insights**:
+    - Menampilkan "Smart Prediction" yang mengambil data produk trending dari backend untuk membantu petani menentukan komoditas tanam yang paling diminati.
+3.  **Dynamic Order History**:
+    - Mengintegrasikan tabel pesanan terbaru yang secara otomatis menarik data transaksi produk milik petani tersebut.
+
+---
+
+---
+
+## 🔍 FASE 9: Sistem Pencarian & Filter Katalog (Discovery Engine)
+*Memudahkan pembeli menemukan produk dengan pencarian keyword dan kategori.*
+
+1.  **Backend Dynamic Search**:
+    - Memodifikasi `ProductRepository` agar query pencarian menjadi dinamis menggunakan operator `LIKE` pada SQL.
+    - Mendukung pencarian berdasarkan Nama Produk, Deskripsi, maupun Kategori.
+2.  **Frontend Search Integration**:
+    - Menghubungkan Search Bar di Header ke sistem rute Marketplace.
+    - Implementasi *Watcher* di Vue untuk memicu pembaruan data setiap kali keyword pencarian atau filter kategori berubah.
+3.  **Enhanced Navigation**:
+    - Mengaktifkan link "Lihat Semua" di berbagai section untuk memberikan akses penuh ke katalog produk bagi pembeli.
+
+---
+
 ## 💡 Pelajaran Utama (Key Takeaways)
 1.  **Komunikasi Data**: Selalu gunakan DTO yang sama antara Go dan Vue.
 2.  **Environment**: Jangan pernah hardcode URL. Gunakan .env agar aplikasi fleksibel.

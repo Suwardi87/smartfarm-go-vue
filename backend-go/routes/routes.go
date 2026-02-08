@@ -22,7 +22,7 @@ func SetupRoutes() *gin.Engine {
 	}))
 	// Define your routes here
 	// Public Routes
-	r.POST("/register", controllers.Register)
+	r.POST("/signup", controllers.Register)
 	r.POST("/signin", controllers.Login)
 	r.POST("/logout", controllers.Logout)
 	r.GET("/products", controllers.GetAllProducts)
@@ -62,6 +62,7 @@ func SetupRoutes() *gin.Engine {
 
 		// Analytics Routes
 		protected.GET("/analytics/trending", controllers.GetTrendingProducts)
+		protected.GET("/analytics/farmer", controllers.GetFarmerDashboard)
 
 		// Payment Routes
 		protected.POST("/payments", controllers.CreatePayment)

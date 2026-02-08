@@ -22,9 +22,25 @@ func main() {
 	config.ConnectDatabase()
 
 	// Check for seed command
-	if len(os.Args) > 1 && os.Args[1] == "seed" {
-		seeders.Seed(config.DB)
-		return
+	if len(os.Args) > 1 {
+		if os.Args[1] == "seed" {
+			seeders.Seed(config.DB)
+			return
+		}
+		if os.Args[1] == "seed-bulk" {
+			seeders.CleanOldProducts(config.DB) // 🧹 Clean old products first
+			seeders.SeedBulk(config.DB)
+			return
+		}
+		if os.Args[1] == "seed-bulk-concurrent" {
+			seeders.CleanOldProducts(config.DB)   // 🧹 Clean old products first
+			seeders.SeedBulkConcurrent(config.DB) // 🚀 Concurrent seeding!
+			return
+		}
+		if os.Args[1] == "cleanup" {
+			seeders.CleanOldProducts(config.DB)
+			return
+		}
 	}
 
 	// Init services/controllers

@@ -48,13 +48,20 @@ func (s *orderService) CreateOrder(req dto.CreateOrderRequest, userID uint) (dto
 
 		// 1. Process items and check stock
 		for _, itemReq := range req.Items {
+			log.Printf("[ORDER] User %d attempting to order Product %d, Qty %d", userID, itemReq.ProductID, itemReq.Quantity)
+
 			// Find product with Lock (Select for Update) to prevent race conditions
 			var product models.Product
+			log.Printf("[LOCK] Acquiring lock for Product %d", itemReq.ProductID)
 			if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&product, itemReq.ProductID).Error; err != nil {
+				log.Printf("[ERROR] Product %d not found", itemReq.ProductID)
 				return errors.New("product not found")
 			}
+			log.Printf("[LOCK] Lock acquired for Product %d, Current Stock: %d", itemReq.ProductID, product.Stock)
 
 			if product.Stock < itemReq.Quantity {
+				log.Printf("[REJECT] Insufficient stock for Product %d (Available: %d, Requested: %d)",
+					itemReq.ProductID, product.Stock, itemReq.Quantity)
 				return errors.New("insufficient stock for " + product.Name)
 			}
 
@@ -73,10 +80,14 @@ func (s *orderService) CreateOrder(req dto.CreateOrderRequest, userID uint) (dto
 			})
 
 			// Update stock
+			oldStock := product.Stock
 			product.Stock -= itemReq.Quantity
 			if err := txProductRepo.Update(&product); err != nil {
+				log.Printf("[ERROR] Failed to update stock for Product %d", itemReq.ProductID)
 				return err
 			}
+			log.Printf("[SUCCESS] Stock updated for Product %d (Old: %d, New: %d)",
+				itemReq.ProductID, oldStock, product.Stock)
 		}
 
 		orderType := "regular"

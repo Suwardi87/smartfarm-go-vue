@@ -1,99 +1,85 @@
 <template>
-  <MarketplaceLayout>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Dashboard Petani</h1>
-
-      <!-- Smart Prediction Section -->
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
-        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-           <span>📊</span> Smart Prediction: Rekomendasi Tanam
-        </h2>
-        <p class="text-gray-500 mb-6">Berdasarkan data pencarian dan pre-order pembeli, komoditas berikut memiliki permintaan tertinggi saat ini.</p>
-
-        <div v-if="loading" class="flex justify-center py-10">
-           <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
+  <AdminLayout>
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Dashboard Petani</h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400 text-theme-sm">Selamat datang kembali! Berikut ringkasan performa pertanian Anda.</p>
         </div>
-        <div v-else>
-           <apexchart type="bar" height="350" :options="chartOptions" :series="series"></apexchart>
-        </div>
-      </div>
-
-      <!-- Action -->
-      <div class="flex justify-end">
-        <router-link to="/products/create" class="px-6 py-3 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 transition">
-          + Tambah Produk Baru
+        <router-link
+          to="/products/create"
+          class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Tambah Produk
         </router-link>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-brand-600"></div>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div v-else class="space-y-6">
+        <!-- Metrics -->
+        <EcommerceMetrics :stats="dashboardData?.stats || null" />
+
+        <div class="grid grid-cols-12 gap-4 md:gap-6">
+          <!-- Main Chart -->
+          <div class="col-span-12 xl:col-span-8">
+            <StatisticsChart />
+          </div>
+
+          <!-- Secondary Widget (Smart Prediction) -->
+          <div class="col-span-12 xl:col-span-4">
+             <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Smart Prediction</h3>
+                <p class="text-sm text-gray-500 mb-6">Komoditas dengan tren pencarian tertinggi minggu ini.</p>
+                <div class="space-y-4">
+                   <div v-for="item in trendingProducts" :key="item.id" class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                      <span class="font-medium text-gray-700 dark:text-gray-300">{{ item.name }}</span>
+                      <span class="text-brand-600 font-bold">{{ item.views }} views</span>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <!-- Recent Orders -->
+          <div class="col-span-12">
+            <RecentOrders :orders="dashboardData?.recent_orders || []" />
+          </div>
+        </div>
+      </div>
     </div>
-  </MarketplaceLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
-import MarketplaceLayout from '@/components/layout/MarketplaceLayout.vue'
 import { ref, onMounted } from 'vue'
-import { getRecommendations } from '@/services/analyticsService'
-import type { CommodityTrend } from '@/services/analyticsService'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import EcommerceMetrics from '@/components/ecommerce/EcommerceMetrics.vue'
+import StatisticsChart from '@/components/ecommerce/StatisticsChart.vue'
+import RecentOrders from '@/components/ecommerce/RecentOrders.vue'
+import { getFarmerDashboardData, getRecommendations } from '@/services/analyticsService'
+import type { FarmerDashboardData, CommodityTrend } from '@/services/analyticsService'
 
 const loading = ref(true)
-
-const series = ref([
-  {
-    name: 'Skor Permintaan',
-    data: [] as number[]
-  }
-])
-
-const chartOptions = ref({
-  chart: {
-    type: 'bar',
-    height: 350
-  },
-  plotOptions: {
-    bar: {
-      horizontal: true
-    }
-  },
-  dataLabels: {
-    enabled: false
-  },
-  xaxis: {
-    categories: [] as string[]
-  },
-  colors: ['#10B981']
-})
+const dashboardData = ref<FarmerDashboardData | null>(null)
+const trendingProducts = ref<CommodityTrend[]>([])
 
 onMounted(async () => {
   try {
-    const response = await getRecommendations()
-
-    // 🔑 AMBIL ARRAY YANG BENAR
-    const rawData = response.data.data ?? []
+    const [dashRes, trendRes] = await Promise.all([
+      getFarmerDashboardData(),
+      getRecommendations()
+    ])
     
-    // 🔑 MAP KE FORMAT YANG DIINGINKAN CHART
-    const data = rawData.map(item => ({
-      name: item.name,
-      score: item.views ?? 0
-    }))
-
-    // 🔑 SORT BERDASARKAN SCORE
-    data.sort((a, b) => b.score - a.score)
-
-    // 🔑 UPDATE SERIES DAN OPTIONS BERSAMAAN
-    series.value = [{
-      name: 'Skor Permintaan',
-      data: data.map(item => item.score)
-    }]
-
-    chartOptions.value = {
-      ...chartOptions.value,
-      xaxis: {
-        categories: data.map(item => item.name)
-      }
-    }
-
+    dashboardData.value = dashRes.data.data
+    trendingProducts.value = trendRes.data.data.slice(0, 5) // Top 5
   } catch (error) {
-    console.error('Failed to fetch analytics', error)
+    console.error('Failed to fetch dashboard data', error)
   } finally {
     loading.value = false
   }

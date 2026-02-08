@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -14,9 +15,9 @@ import (
 
 type ProductService interface {
 	CreateProduct(req dto.CreateProductRequest, farmerID uint) (dto.ProductResponse, error)
-	FindAll() ([]dto.ProductResponse, error)
+	FindAll(query string, page int, limit int) (dto.PaginatedProductResponse, error)
 	FindByID(id uint) (dto.ProductResponse, error)
-	FindProductsByFarmerID(farmerID uint) ([]dto.ProductResponse, error)
+	FindProductsByFarmerID(farmerID uint, page int, limit int) (dto.PaginatedProductResponse, error)
 	UpdateProduct(id uint, req dto.CreateProductRequest, farmerID uint) (dto.ProductResponse, error)
 	DeleteProduct(id uint, farmerID uint) error
 }
@@ -71,17 +72,47 @@ func (s *productService) CreateProduct(req dto.CreateProductRequest, farmerID ui
 	return mapProductToResponse(product), nil
 }
 
-func (s *productService) FindAll() ([]dto.ProductResponse, error) {
-	products, err := s.repo.FindAll()
-	if err != nil {
-		return nil, err
+func (s *productService) FindAll(query string, page int, limit int) (dto.PaginatedProductResponse, error) {
+	start := time.Now()
+	if page < 1 {
+		page = 1
 	}
+	if limit < 1 {
+		limit = 12
+	}
+
+	offset := (page - 1) * limit
+
+	products, err := s.repo.FindAll(query, limit, offset)
+	if err != nil {
+		return dto.PaginatedProductResponse{}, err
+	}
+	log.Printf("[DEBUG] repo.FindAll took %v", time.Since(start))
+
+	countStart := time.Now()
+	total, err := s.repo.CountAll(query)
+	if err != nil {
+		return dto.PaginatedProductResponse{}, err
+	}
+	log.Printf("[DEBUG] repo.CountAll took %v", time.Since(countStart))
 
 	var responses []dto.ProductResponse
 	for _, p := range products {
 		responses = append(responses, mapProductToResponse(p))
 	}
-	return responses, nil
+
+	totalPages := int(total / int64(limit))
+	if total%int64(limit) > 0 {
+		totalPages++
+	}
+
+	return dto.PaginatedProductResponse{
+		Data:       responses,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
 }
 
 func (s *productService) FindByID(id uint) (dto.ProductResponse, error) {
@@ -92,17 +123,43 @@ func (s *productService) FindByID(id uint) (dto.ProductResponse, error) {
 	return mapProductToResponse(product), nil
 }
 
-func (s *productService) FindProductsByFarmerID(farmerID uint) ([]dto.ProductResponse, error) {
-	products, err := s.repo.FindByFarmerID(farmerID)
+func (s *productService) FindProductsByFarmerID(farmerID uint, page int, limit int) (dto.PaginatedProductResponse, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 12
+	}
+
+	offset := (page - 1) * limit
+
+	products, err := s.repo.FindByFarmerID(farmerID, limit, offset)
 	if err != nil {
-		return nil, err
+		return dto.PaginatedProductResponse{}, err
+	}
+
+	total, err := s.repo.CountByFarmerID(farmerID)
+	if err != nil {
+		return dto.PaginatedProductResponse{}, err
 	}
 
 	var responses []dto.ProductResponse
 	for _, p := range products {
 		responses = append(responses, mapProductToResponse(p))
 	}
-	return responses, nil
+
+	totalPages := int(total / int64(limit))
+	if total%int64(limit) > 0 {
+		totalPages++
+	}
+
+	return dto.PaginatedProductResponse{
+		Data:       responses,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
 }
 
 func (s *productService) UpdateProduct(id uint, req dto.CreateProductRequest, farmerID uint) (dto.ProductResponse, error) {

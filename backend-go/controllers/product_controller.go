@@ -51,12 +51,19 @@ func CreateProduct(c *gin.Context) {
 }
 
 func GetAllProducts(c *gin.Context) {
-	products, err := productService.FindAll()
+	query := c.Query("q")
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "12")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	result, err := productService.FindAll(query, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": products})
+	c.JSON(http.StatusOK, result)
 }
 
 func GetProductByID(c *gin.Context) {
@@ -104,13 +111,18 @@ func GetFarmerProducts(c *gin.Context) {
 		}
 	}
 
-	products, err := productService.FindProductsByFarmerID(userID)
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "12")
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	result, err := productService.FindProductsByFarmerID(userID, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": products})
+	c.JSON(http.StatusOK, result)
 }
 
 func UpdateProduct(c *gin.Context) {

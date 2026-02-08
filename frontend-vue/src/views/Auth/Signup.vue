@@ -101,6 +101,12 @@
                   >
                 </div>
               </div>
+
+              <!-- Error Alert -->
+              <div v-if="error" class="mb-5 p-3 rounded-lg bg-red-100 text-red-700 text-sm border border-red-200">
+                {{ error }}
+              </div>
+
               <form @submit.prevent="handleSubmit">
                 <div class="space-y-5">
                   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -331,6 +337,7 @@ import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { register } from '@/services/authService'
+import { useUser } from '@/stores/user'
 
 const firstName = ref('')
 const lastName = ref('')
@@ -353,6 +360,8 @@ const handleSubmit = async () => {
     return
   }
 
+  error.value = null // Reset error
+
   try {
     await register({
       name: `${firstName.value} ${lastName.value}`.trim(),
@@ -360,11 +369,24 @@ const handleSubmit = async () => {
       password: password.value,
       role: role.value
     })
-    // Redirect to signin
-    router.push('/signin')
+    
+    // Auto-login success (cookie set by backend)
+    // Fetch user to update Pinia state
+    await useUser().fetchUser()
+
+    // Redirect based on role
+    if (role.value === 'petani') {
+      router.push('/farmer/dashboard')
+    } else {
+      router.push('/')
+    }
   } catch (err: any) {
     console.error(err)
-    error.value = "Registration failed. Please try again."
+    if (err.response && err.response.data && err.response.data.error) {
+      error.value = err.response.data.error
+    } else {
+      error.value = "Registration failed. Please try again."
+    }
   }
 }
 </script>

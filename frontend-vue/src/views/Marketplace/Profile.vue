@@ -1,5 +1,5 @@
 <template>
-  <MarketplaceLayout>
+  <AdminLayout>
     <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Profil Saya</h1>
@@ -114,17 +114,17 @@
         </div>
       </div>
     </div>
-  </MarketplaceLayout>
+  </AdminLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import MarketplaceLayout from '@/components/layout/MarketplaceLayout.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { getMe, updateProfile } from '@/services/authService'
 import type { User } from '@/dto/auth/User'
 import { useToast } from '@/composables/useToast'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 const router = useRouter()
 const { showSuccess, showError } = useToast()

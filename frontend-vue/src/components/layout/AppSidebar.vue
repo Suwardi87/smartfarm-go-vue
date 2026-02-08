@@ -20,29 +20,15 @@
       ]"
     >
       <router-link to="/">
-        <img
-          v-if="isExpanded || isHovered || isMobileOpen"
-          class="dark:hidden"
-          src="/images/logo/logo.svg"
-          alt="Logo"
-          width="150"
-          height="40"
-        />
-        <img
-          v-if="isExpanded || isHovered || isMobileOpen"
-          class="hidden dark:block"
-          src="/images/logo/logo-dark.svg"
-          alt="Logo"
-          width="150"
-          height="40"
-        />
-        <img
-          v-else
-          src="/images/logo/logo-icon.svg"
-          alt="Logo"
-          width="32"
-          height="32"
-        />
+        <div class="flex items-center">
+          <span class="text-2xl">🌱</span>
+          <span
+            v-if="isExpanded || isHovered || isMobileOpen"
+            class="ml-2 text-xl font-bold text-gray-900 dark:text-white"
+          >
+            SmartFarm
+          </span>
+        </div>
       </router-link>
     </div>
     <div
